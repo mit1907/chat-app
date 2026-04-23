@@ -8,11 +8,14 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 
-// Step 3: Initialize Socket.IO on top of the HTTP server
-const io = new Server(server);
+// Step 3: Initialize Socket.IO on top of the HTTP server (CORS added)
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    }
+});
 
 // Step 4: Serve static files from the "public" folder
-// This makes sure our frontend files (HTML, CSS, JS) are accessible
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Track connected users
@@ -27,22 +30,21 @@ io.on('connection', (socket) => {
         users[socket.id] = username;
         console.log(`${username} joined.`);
 
-        // Notify everyone that a user joined
         io.emit('system message', `${username} joined the chat`);
-        
-        // Update user count for everyone
         io.emit('user count', Object.keys(users).length);
     });
 
-    // Listen for 'chat message' events from clients
+    // Handle chat messages
     socket.on('chat message', (data) => {
         console.log('Message from ' + data.username + ':', data.text);
-        
-        // Broadcast the message to all connected users
+
         io.emit('chat message', {
             username: data.username,
             text: data.text,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
             socketId: socket.id
         });
     });
@@ -54,18 +56,17 @@ io.on('connection', (socket) => {
             console.log(`${username} disconnected.`);
             io.emit('system message', `${username} left the chat`);
             delete users[socket.id];
-            
-            // Update user count
+
             io.emit('user count', Object.keys(users).length);
         }
     });
 
-    // Initial user count for the new connection
+    // Initial user count
     socket.emit('user count', Object.keys(users).length);
 });
 
-// Step 6: Start the server on port 3000
+// Step 6: Start the server (Render compatible)
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
