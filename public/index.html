@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Join Screen -->
+    <div id="join-screen" class="screen">
+        <div class="join-container">
+            <h1>Chat App</h1>
+            <div class="join-card">
+                <label for="username">Enter your name to start chatting</label>
+                <input type="text" id="username" placeholder="Username" autocomplete="off">
+                <button id="join-btn">Join Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Screen -->
+    <div id="chat-screen" class="screen hidden">
+        <div class="chat-container">
+            <header>
+                <div class="header-info">
+                    <h1>Chat App</h1>
+                    <div class="online-status">
+                        <span class="status-dot"></span>
+                        <span id="user-count">1</span> online
+                    </div>
+                </div>
+                <button id="leave-btn" class="icon-btn" data-tooltip="Leave Chat">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </header>
+
+            <main id="messages">
+                <!-- Placeholder welcome message -->
+                <div class="system-message">Welcome to the chat room!</div>
+            </main>
+
+            <footer>
+                <form id="chat-form">
+                    <div class="input-container">
+                        <button type="button" id="emoji-btn" class="input-action-btn">😊</button>
+                        <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                        
+                        <!-- Emoji Picker Container -->
+                        <div id="emoji-picker-container" class="hidden">
+                            <emoji-picker></emoji-picker>
+                        </div>
+                    </div>
+                    <button type="submit" id="send-btn">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </form>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="leave-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h2>Leave Chat?</h2>
+            <p>Are you sure you want to leave the chat room?</p>
+            <div class="modal-actions">
+                <button id="cancel-leave" class="secondary-btn">Cancel</button>
+                <button id="confirm-leave" class="danger-btn">Leave Now</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Emoji Picker Library -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@latest/index.js"></script>
+
+    <!-- Socket.IO library is served by the server automatically at this path -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
