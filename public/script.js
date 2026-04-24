@@ -43,9 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Chat messages
     socket.on('chat message', (data) => {
-        const type = data.socketId === socket.id ? 'sent' : 'received';
-        const sender = type === 'sent' ? 'You' : data.username;
-        addMessage(data.text, type, sender, data.timestamp);
+        // If it's our own message, we already displayed it with "Sent" status
+        // so we don't display it again. Just wait for the 'message delivered' event.
+        if (data.socketId === socket.id) return;
+
+        const type = 'received';
+        const sender = data.username;
+        addMessage(data.text, type, sender, data.timestamp, data.msgId);
+    });
+
+    // Listen for acknowledgment from server
+    socket.on('message delivered', (msgId) => {
+        const messageElement = document.querySelector(`[data-id="${msgId}"]`);
+        if (messageElement) {
+            const statusElement = messageElement.querySelector('.status');
+            statusElement.textContent = 'Delivered';
+            statusElement.classList.add('delivered');
+        }
     });
 
     // System messages (Join/Leave)
@@ -125,7 +139,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = messageInput.value.trim();
         
         if (text) {
+            // 1. Create a unique ID for this message
+            const msgId = Date.now().toString();
+            
+            // 2. Generate current time for immediate feedback
+            const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // 3. Immediately show message in UI as "Sent"
+            addMessage(text, 'sent', 'You', now, msgId, 'Sent');
+
+            // 4. Send to server with the message ID
             socket.emit('chat message', {
+                msgId: msgId,
                 username: currentUser,
                 text: text
             });
@@ -142,9 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
         messageInput.focus();
     }
 
-    function addMessage(text, type, sender, time) {
+    function addMessage(text, type, sender, time, msgId, status = '') {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', type);
+        if (msgId) messageDiv.setAttribute('data-id', msgId);
         
         const metaDiv = document.createElement('div');
         metaDiv.classList.add('message-meta');
@@ -153,9 +179,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = document.createElement('div');
         contentDiv.classList.add('text-content');
         contentDiv.textContent = text;
-        
-        messageDiv.appendChild(metaDiv);
-        messageDiv.appendChild(contentDiv);
+
+        // Add status element if it's a sent message
+        if (type === 'sent') {
+            const statusDiv = document.createElement('div');
+            statusDiv.classList.add('message-status');
+            statusDiv.innerHTML = `<span class="status">${status || ''}</span>`;
+            messageDiv.appendChild(metaDiv);
+            messageDiv.appendChild(contentDiv);
+            messageDiv.appendChild(statusDiv);
+        } else {
+            messageDiv.appendChild(metaDiv);
+            messageDiv.appendChild(contentDiv);
+        }
         
         messagesContainer.appendChild(messageDiv);
         scrollToBottom();
